@@ -1,0 +1,11 @@
+<SOFTPKG NAME="Statistics-SDT" VERSION="0,02,0,0">
+    <TITLE>Statistics-SDT</TITLE>
+    <ABSTRACT>Signal detection theory measures of sensitivity and response-bias</ABSTRACT>
+    <AUTHOR>Roderick Garton &lt;rgarton@utas_._edu_._au&gt;</AUTHOR>
+    <IMPLEMENTATION>
+        <DEPENDENCY NAME="Math-Cephes" VERSION="0,43,0,0" />
+        <OS NAME="MSWin32" />
+        <ARCHITECTURE NAME="MSWin32-x86-multi-thread-5.8" />
+        <CODEBASE HREF="-PPM.tar.gz" />
+    </IMPLEMENTATION>
+</SOFTPKG>
