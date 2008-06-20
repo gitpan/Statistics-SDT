@@ -1,6 +1,11 @@
 Revision history for Perl extension Statistics::SDT.
 
-0.02  Aliases for sensitivity functions introduced.
+0.03	** Parameter 'correct' renamed 'correction' for consistency: no error-handling for this change
+      Error messaging cleaned-up (rates to be defined, not simply exist)
+      Pod section updated - nothing major.
+
+0.02  Wed Jul 26 2006
+      Aliases for sensitivity functions introduced.
 
 0.01  Mon Jul 24 10:54:20 2006
 	- original version; created by h2xs 1.23 with options

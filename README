@@ -10,11 +10,19 @@ To install this module type the following:
    make test
    make install
 
+
 DEPENDENCIES
 
 This module requires these other modules and libraries:
 
   Math::Cephes;
+
+
+UPDATING?
+
+Please read the Changes file for updates.
+Changes have been made, over releases,
+to parameter and method names. 
 
 COPYRIGHT AND LICENCE
 

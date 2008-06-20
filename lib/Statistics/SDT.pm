@@ -4,8 +4,8 @@ use strict;
 use warnings;
 use Carp qw(croak);
 use vars qw($VERSION @EXPORT_OK);
-use Exporter qw( import );
-$VERSION = 0.02;
+use Exporter qw(import);
+$VERSION = 0.03;
 @EXPORT_OK = qw(d_sensitivity a_sensitivity area_d_sensitivity likelihood_bias log_likelihood_bias decision_bias griers_bias dprime aprime area_dprime);
 
 use Math::Cephes qw(:dists);
@@ -21,7 +21,7 @@ sub new {
             $self->{$_} = $args->{$_};
         }
         
-        ($self->{'hr'}, $self->{'far'}) = _init_rates($args);
+        ##($self->{'hr'}, $self->{'far'}) = _init_rates($args);
     }
 
 	return $self;
@@ -32,6 +32,8 @@ sub new {
 # --------------------
 
 sub d_sensitivity {
+    ## my $j = shift;
+    # while(my($key,$val)=each%$j){print "keyj = $key = $val\n";}
     my ($h, $f, $m) = _init_rates(@_);
     # Use Smith's algorithms if there are more than 2 alternatives:
     if ($m && $m > 2) {
@@ -132,26 +134,46 @@ sub griers_bias { # B''
 }
 
 # --------------------
+sub hr {
+# --------------------
+    my $args = shift;
+    my $self = ref $args->[0] ? shift @{$args} : {};
+    $self->{'hr'} = _init_rates(qw/hr hits signal_trials/);
+    return $self->{'hr'};
+}
+
+# --------------------
+sub far {
+# --------------------
+    my $args = shift;
+    my $self = ref $args->[0] ? shift @{$args} : {};
+    $self->{'far'} = _init_rates(qw/far false_alarms noise_trials/);
+    return $self->{'far'};
+}
+
+# --------------------
 # Initialise hit and false-alarm rates:
 sub _init_rates {
 # --------------------
-    my $args = shift;
+    my ($args) = shift || {};
+    #while(my($key,$val)=each%$args){print "key $key = $val\n";}
     foreach ([qw/hr hits signal_trials/], [qw/far false_alarms noise_trials/]) {
-        if (! exists $args->{$_->[0]}) {
-            
+        
+        ##next if $self->{$_->[0]};
+        if (! defined $args->{$_->[0]}) {
             # Need (i) no. of hits and signal trials, and (ii) no. of false alarms and noise trials:
-            croak __PACKAGE__, "Number of $_->[1] and $_->[2] needed to calculate $_->[0]"
-            if ! exists $args->{$_->[1]} || ! exists $args->{$_->[2]};
+            croak __PACKAGE__, " Number of $_->[1] and $_->[2] needed to calculate '$_->[0]'"
+            if ! defined $args->{$_->[1]} || ! defined $args->{$_->[2]};
             
             # Apply the "loglinear" correction, regardless of values:
-            if ($args->{'correct'} and $args->{'correct'} > 1) {
+            if ($args->{'correction'} and $args->{'correction'} > 1) {
                 $args->{$_->[0]} = ($args->{$_->[1]} + .5) / ($args->{$_->[2]} + 1);
             }
             # or get the rate first, applying corrections if needed:
             else {
                 $args->{$_->[0]} = $args->{$_->[1]} / $args->{$_->[2]};
                 
-                if ($args->{'correct'}) {
+                if ($args->{'correction'}) {
                     if (! $args->{$_->[0]}) {
                         $args->{$_->[0]} = .5 / $args->{$_->[2]};
                     }
@@ -182,7 +204,7 @@ Statistics::SDT - Signal detection theory measures of sensitivity and response-b
 
 =head1 VERSION
 
-This is documentation for Version 0.02 of Statistics-SDT (2006-11-20).
+This is documentation for Version 0.03 of Statistics-SDT (2008-06-19).
 
 =head1 SYNOPSIS
 
@@ -194,7 +216,7 @@ This is documentation for Version 0.02 of Statistics-SDT (2006-11-20).
             signal_trials => 50,
             false_alarms => 17,
             noise_trials => 25,
-            correct => 2,
+            correction => 2,
         }
     );
 
@@ -229,11 +251,11 @@ The number of noise trials. The false-alarm-rate is derived by dividing the numb
 
 =item alternatives
 
-The number of response alternatives. Default = 2 (for the classic signal-detection situation of discriminating between signal+noise and noise-only). If the number of alternatives is greater than 2, the measure of sensitivity, when calling L<d_sensitivity|d_sensitivity>, is based on the Smith (1982) algorithms.
+The number of response alternatives. Default = 2 (for the classic signal-detection situation of discriminating between signal+noise and noise-only). If the number of alternatives is greater than 2, the measure of sensitivity, when calling L<d_sensitivity|d_sensitivity>, is based on Smith's (1982) algorithms.
 
-=item correct
+=item correction
 
-A parameter that indicates whether or not to perform a correction on the number of hits and false-alarms as a corrective when the hit-rate or false-alarm-rate equals 0 or 1 (due, e.g., to strong inducements against false-alarms, or easy discrimination between signals and noise). This is relevant to all functions that make use of the I<inverse phi> function (all except L<a_sensitivity|a_sensitivity> and L<griers_bias|griers_bias>). 
+A parameter that indicates whether or not to perform a correction on the number of hits and false-alarms  when the hit-rate or false-alarm-rate equals 0 or 1 (due, e.g., to strong inducements against false-alarms, or easy discrimination between signals and noise). This is relevant to all functions that make use of the I<inverse phi> function (all except L<a_sensitivity|a_sensitivity> and L<griers_bias|griers_bias>). 
 
 If set to greater than 1, the loglinear transformation is applied, i.e., 0.5 is added to both the number of hits and false-alarms, and 1 is added to the number of signal and noise trials. These adjustments are made irrespective of the extremity of the rates themselves.
 
@@ -257,12 +279,12 @@ This is the false-alarm-rate. Instead of passing the number of false alarms and 
 
 The methods can be accessed by an object- or function-oriented style: 
 
-B<Object-oriented style>: firstly construct a class object by supplying L<KEY VALUES|KEY VALUES> to the L<new|new> method, and then call each method by supplying the class object as the first argument.
+B<Object-oriented style>: firstly construct a class object by supplying L<"KEY VALUES"|"KEY VALUES"> to the L<new|new> method, and then call each method by supplying the class object as the first argument.
 
  $sdt = Statistics::SDT->new({hr => => 10/12, far => 1/12});
  $bias = $sdt->likelihood_bias();
 
-B<Function-oriented style>: firstly explicitly import the functions to be C<use>d, and then simply call the function, with L<KEY VALUES|KEY VALUES>.
+B<Function-oriented style>: firstly explicitly import the functions to be C<use>d, and then simply call the function, with L<"KEY VALUES"|"KEY VALUES">. Note that no methods are exported by default.
 
  use Statistics::SDT qw(likelihood_bias);
  $bias = likelihood_bias({hr => => 10/12, far => 1/12});
@@ -277,27 +299,23 @@ As well as holding the values of the parameters submitted to it, the class-objec
 
 This method can be skipped, and the following methods used directly (all optionally exported), as long as the parameters, as above, are passed to each one.
 
-You can supply the hit-rate and false-alarm-rate themselves, but ensure that they do not equal zero or 1 in order to avoid errors thrown by the inverse-phi function. The calculation of the hit-rate and false-alarm-rate by the module corrects for this limitation - see the notes on the C<correct> parameter, above. 
+You can supply the hit-rate and false-alarm-rate themselves, but ensure that they do not equal zero or 1 in order to avoid errors thrown by the inverse-phi function. The calculation of the hit-rate and false-alarm-rate by the module corrects for this limitation - see the notes on the C<correction> parameter, above. 
 
 =head2 Sensitivity measures
 
 =head3 d_sensitivity
 
-Returns the index of sensitivity, or discrimination, I<d'> (d prime). (C<dprime> is an alias for this function.)
+Alias: C<dprime>
 
-=over 12
+Returns the index of sensitivity, or discrimination, I<d'> (d prime).
 
-=item
-
-I<d'> = phi^-1(hr) - phi^-1(far)
-
-=back
+=for html <p>&nbsp;&nbsp;<i>d'</i> = phi<sup>-1</sup>(hr) - phi<sup>-1</sup>(far)</p>
 
 I<d'> is found by subtracting the I<z>-score that corresponds to the false-alarm rate (B<far>) from the I<z>-score that corresponds to the hit rate (B<hr>). Sensitivity is measured in standard deviation units, larger positive values indicating greater sensitivity.
 
 If both the hit-rate and false-alarm-rate are either 0 or 1, then C<d_sensitivity> returns 0.
 
-If there are more than two alternatives (as specified by the parameter named I<alternatives> in the hash-reference passed to the L<new|new> constructor or this method, then Smith's (1982) algorithms are used.
+If there are more than two alternatives (as specified by the parameter named I<alternatives> in the hash-reference passed to the L<new|new> constructor or this method), then Smith's (1982) algorithms are used.
 
 A value of 0 indicates no sensitivity to the presence of the signal, i.e., it cannot be discriminated from noise. 
 
@@ -305,13 +323,17 @@ Values less than 0 indicate a lack of sensitivity that might result from respons
 
 =head3 a_sensitivity
 
-Returns the nonparametric index of sensitivity, I<A'>. (C<aprime> is an alias for this function.)
+Alias: C<aprime>
+
+Returns the nonparametric index of sensitivity, I<A'>.
 
 Ranges from 0 to 1. Values greater than 0.5 indicate positive discrimination (1 = perfect performance); values less than 0.5 indicate a failure of discrimination (perhaps due to response-confusion); and a value of 0.5 indicates no sensitivity to the presence of the signal, i.e., it cannot be discriminated from noise.
 
 =head3 area_d_sensitivity
 
-The area under the receiver-operating-characteristic (ROC) curve, simply equalling the proportion of correct responses that would have been yielded had the task been a two-alternative forced-choice task rather than a yes/no task. (C<area_dprime> is an alias for this function.)
+Alias: C<area_dprime>
+
+The area under the receiver-operator-characteristic (ROC) curve, simply equalling the proportion of correct responses that would have been yielded had the task been a two-alternative forced-choice task rather than a yes/no task.
 
 If both the hit-rate and false-alarm-rate are either 0 or 1, then C<area_d_sensitivity> returns 0.5.
 
@@ -345,8 +367,6 @@ Ranges from -1 to +1, with values less than 0 indicating a bias toward the I<yes
 
 =head2 Object-oriented style    
 
- use strict;
-
  use Statistics::SDT;
 
  # 1. Create SDT object, loading it with the key values:
@@ -356,7 +376,7 @@ Ranges from -1 to +1, with values less than 0 indicating a bias toward the I<yes
      signal_trials  => 50,
      false_alarms   => 17,
      noise_trials   => 25,
-     correct        => 2,
+     correction     => 2,
    }
  );
 
@@ -382,7 +402,7 @@ Ranges from -1 to +1, with values less than 0 indicating a bias toward the I<yes
        signal_trials => 12,
        false_alarms => 0,
        noise_trials => 12,
-       correct => 1,
+       correction => 1,
     }
  );
 
@@ -397,7 +417,7 @@ Ranges from -1 to +1, with values less than 0 indicating a bias toward the I<yes
        signal_trials => 12,
        false_alarms => 0,
        noise_trials => 12,
-       correct => 1,
+       correction => 1,
     }
  );
 
@@ -411,19 +431,38 @@ Smith, J. E. K. (1982). Simple algorithms for M-alternative forced-choice calcul
 
 Stanislaw, H., & Todorov, N. (1999). Calculation of signal detection theory measures. I<Behavior Research Methods, Instruments, and Computers>, I<31>, 137-149.
 
+=head1 TO DO/BUGS
+
++ Get rid of function-oriented interface (maintained only because most Perl statistics packages have this interface) or find a better way to keep up it up with OO-interface.
+
 =head1 SEE ALSO
 
 L<Math::Cephes|lib::Math::Cephes> : The present module imports the L<ndtri|lib::Math::Cephes> or I<inverse phi> function from this package, which is used to calculate I<z>-scores from probabilities.
 
-L<Statistics::ROC|lib::Statistics::ROC> : Receiver operating characteristic curves.
+L<Statistics::ROC|lib::Statistics::ROC> : Receiver-operator characteristic curves.
 
-=head1 AUTHOR/LICENSE
+=head1 REVISION HISTORY
 
-This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+=over 4
 
-Copyright (C) 2006 Roderick Garton  
+=item v 0.01
 
-=head1 DISCLAIMER
+2006-11-20
+
+Initital release via PAUSE.
+
+=back
+
+=head1 AUTHOR
+
+Roderick Garton, E<lt>rgarton@utas_DOT_edu_DOT_auE<gt>
+
+=head1 COPYRIGHT/LICENSE/DISCLAIMER
+
+Copyright (C) 2006 Roderick Garton 
+
+This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself, either Perl version 5.8.8 or,
+at your option, any later version of Perl 5 you may have available. 
 
 To the maximum extent permitted by applicable law, the author of this module disclaims all warranties, either express or implied, including but not limited to implied warranties of merchantability and fitness for a particular purpose, with regard to the software and the accompanying documentation.
 
