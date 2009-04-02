@@ -5,7 +5,7 @@ use warnings;
 use Carp qw(croak);
 use Math::Cephes qw(:dists :explog);
 use vars qw($VERSION);
-$VERSION = 0.032;
+$VERSION = 0.033;
 
 my %counts_dep = (
     hits => [qw/signal_trials misses/], 
@@ -30,7 +30,7 @@ Statistics::SDT - Signal detection theory (SDT) measures of sensitivity and resp
 
 The following is based on example data from Stanislav & Todorov (1999), and Alexander (2006), with which the module's results agree.
 
- use Statistics::SDT 0.032;
+ use Statistics::SDT 0.033;
 
  my $sdt = Statistics::SDT->new(
   correction => 1,

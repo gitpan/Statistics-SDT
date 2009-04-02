@@ -1,8 +1,8 @@
-<SOFTPKG NAME="Statistics-SDT" VERSION="0,03,2,0">
+<SOFTPKG NAME="Statistics-SDT" VERSION="0,03,3,0">
     <TITLE>Statistics-SDT</TITLE>
     <ABSTRACT>Signal-detection theory (SDT) measures of sensitivity and bias</ABSTRACT>
     <AUTHOR>Roderick Garton</AUTHOR>
     <IMPLEMENTATION>
-        <CODEBASE HREF="PPM-Statistics-SDT-0.032.tar.gz" />
+        <CODEBASE HREF="PPM-Statistics-SDT-0.033.tar.gz" />
     </IMPLEMENTATION>
 </SOFTPKG>

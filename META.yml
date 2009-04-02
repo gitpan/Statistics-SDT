@@ -1,6 +1,6 @@
 ---
 name: Statistics-SDT
-version: 0.032
+version: 0.033
 author:
   - Roderick Garton
 abstract: "Signal-detection theory (SDT) measures of sensitivity and bias"
