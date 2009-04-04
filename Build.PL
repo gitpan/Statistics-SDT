@@ -11,7 +11,7 @@ my $builder = Module::Build->new(
         'Test::More' => 0,
         'Math::Cephes' => 0.44,
     },
-    add_to_cleanup      => [ 'Statistics-SDT-0.033-*' ],
+    add_to_cleanup      => [ 'Statistics-SDT-0.034-*' ],
 );
 
 $builder->create_build_script();
