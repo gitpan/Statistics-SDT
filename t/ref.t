@@ -1,6 +1,8 @@
 use strict;
 use warnings;
 use Test::More tests => 20;
+use constant EPS => 1e-9;
+
 BEGIN { use_ok('Statistics::SDT') };
 
 my $sdt = Statistics::SDT->new(
@@ -37,37 +39,41 @@ my $v;
 
 foreach (qw/hr far/) {
     ok(defined $sdt->{$_} );
-    ok(equal($sdt->{$_}, $refvals{$_}));
+    ok(about_equal($sdt->{$_}, $refvals{$_}));
 }
 
 foreach (qw/d Ad Ap/) {
-	$v = $sdt->sensitivity($_);
-    ok( equal($v, $refvals{$_}), "Sensitivity $_ : $v = $refvals{$_}");
+	$v = $sdt->sens($_);
+    ok( about_equal($v, $refvals{$_}), "Sensitivity $_ : $v = $refvals{$_}");
 }
 
 foreach (qw/beta logbeta cdecision griers/) {
 	$v = $sdt->bias($_);
-    ok( equal($v, $refvals{$_}), "Bias $_ $v = $refvals{$_}");
+    ok( about_equal($v, $refvals{$_}), "Bias $_ $v = $refvals{$_}");
 }
 
 $v = $sdt->criterion();
-ok( equal($v, $refvals{'criterion'}), "Criterion k $v = $refvals{'criterion'}");
+ok( about_equal($v, $refvals{'criterion'}), "Criterion k $v = $refvals{'criterion'}");
 
 $v = $sdt->dc2hr();
-ok( equal($v, $refvals{'hr'}), "Hr $v = $refvals{'hr'}");
+ok( about_equal($v, $refvals{'hr'}), "Hr $v = $refvals{'hr'}");
 
 $v = $sdt->dc2far();
-ok( equal($v, $refvals{'far'}), "FAr $v = $refvals{'far'}");
+ok( about_equal($v, $refvals{'far'}), "FAr $v = $refvals{'far'}");
 
 $v = $sdt->dc2logbeta();
-ok( equal($v, $refvals{'logbeta'}), "Logbeta $v = $refvals{'logbeta'}");
+ok( about_equal($v, $refvals{'logbeta'}), "Logbeta $v = $refvals{'logbeta'}");
 
-$v = $sdt->sensitivity('f' => {hr => .866, states => 3, correction => 0, method => 'alexander'});
-ok( equal($v, 2), "Sensitivity fc $v = 2");
+$v = $sdt->sens('f' => {hr => .866, states => 3, correction => 0, method => 'alexander'});
+ok( about_equal($v, 2), "Sensitivity fc $v = 2");
 
-$v = $sdt->sensitivity('f' => {hr => .866, states => 3, correction => 0, method => 'smith'});
-ok( equal($v, 2.05), "Sensitivity fc $v = 2.05");
+$v = $sdt->sens('f' => {hr => .866, states => 3, correction => 0, method => 'smith'});
+ok( about_equal($v, 2.05), "Sensitivity fc $v = 2.05");
 
-sub equal {
-    return $_[0] == $_[1] ? 1 : 0;
+sub about_equal {
+    return 1 if $_[0] + EPS > $_[1] and $_[0] - EPS < $_[1];
+    return 0;
 }
+
+
+

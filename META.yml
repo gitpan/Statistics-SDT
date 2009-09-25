@@ -1,13 +1,15 @@
----
-name: Statistics-SDT
-version: 0.034
-author:
-  - Roderick Garton
-abstract: "Signal-detection theory (SDT) measures of sensitivity and bias"
-license: perl
-generated_by: Module::Build version 0.2808
+--- #YAML:1.0
+name:                Statistics-SDT
+version:             0.035
+abstract:            Signal detection theory (SDT) measures of sensitivity and response-bias
+license:             ~
+author:              
+    - Roderick Garton <rgarton@cpan.org>
+generated_by:        ExtUtils::MakeMaker version 6.42_01
+distribution_type:   module
+requires:     
+    Math::Cephes:                  0.44
+    Test::More:                    0
 meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.2.html
-  version: 1.2
-resources:
-  license: http://dev.perl.org/licenses/
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3

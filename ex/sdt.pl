@@ -1,6 +1,6 @@
 # Example comparing results with Stanislav & Todorov (1999).
 
-use Statistics::SDT 0.03;
+use Statistics::SDT 0.035;
 
 my $sdt = Statistics::SDT->new(
   correction => 1,
@@ -18,9 +18,9 @@ my $sdt = Statistics::SDT->new(
  printf("False-alarm rate = %s\n",    $sdt->rate('f') );          # .68
  printf("Miss rate = %s\n",           $sdt->rate('m') );          # .00
  printf("Correct-rej'n rate = %s\n",  $sdt->rate('c'));           # .32
- printf("Sensitivity d' = %s\n",      $sdt->sensitivity('d') );   # 1.86
- printf("Sensitivity Ad' = %s\n",     $sdt->sensitivity('Ad') );  # 0.91
- printf("Sensitivity A' = %s\n",      $sdt->sensitivity('A') );   # 0.82
+ printf("Sensitivity d' = %s\n",      $sdt->sens('d') );   		# 1.86
+ printf("Sensitivity Ad' = %s\n",     $sdt->sens('Ad') );  		# 0.91
+ printf("Sensitivity A' = %s\n",      $sdt->sens('A') ); 		# 0.82
  printf("Bias beta = %s\n",           $sdt->bias('b') );          # 0.07
  printf("Bias logbeta = %s\n",        $sdt->bias('log') );        # -2.60
  printf("Bias c = %s\n",              $sdt->bias('c') );          # -1.40

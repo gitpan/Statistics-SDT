@@ -5,7 +5,7 @@ use warnings;
 use Carp qw(croak);
 use Math::Cephes qw(:dists :explog);
 use vars qw($VERSION);
-$VERSION = 0.034;
+$VERSION = 0.035;
 
 my %counts_dep = (
     hits => [qw/signal_trials misses/], 
@@ -30,7 +30,7 @@ Statistics::SDT - Signal detection theory (SDT) measures of sensitivity and resp
 
 The following is based on example data from Stanislav & Todorov (1999), and Alexander (2006), with which the module's results agree.
 
- use Statistics::SDT 0.034;
+ use Statistics::SDT 0.035;
 
  my $sdt = Statistics::SDT->new(
   correction => 1,
@@ -61,16 +61,16 @@ The following is based on example data from Stanislav & Todorov (1999), and Alex
  printf("LogBeta via d & c = %s\n",   $sdt->dc2logbeta() );       # -2.60
 
  # If the number of alternatives is greater than 2, there are two method options:
- printf("JAlex. d_fc = %.2f\n", $sdt->sensitivity('f' => {hr => .866, states => 3, correction => 0, method => 'alexander'})); # 2.00
- printf("JSmith d_fc = %.2f\n", $sdt->sensitivity('f' => {hr => .866, states => 3, correction => 0, method => 'smith'})); # 2.05
+ printf("JAlex. d_fc = %.2f\n", $sdt->sens('f' => {hr => .866, states => 3, correction => 0, method => 'alexander'})); # 2.00
+ printf("JSmith d_fc = %.2f\n", $sdt->sens('f' => {hr => .866, states => 3, correction => 0, method => 'smith'})); # 2.05
 
 =head1 DESCRIPTION
 
-Signal Detection Theory (SDT) measures of sensitivity and response-bias, e.g., I<d'>, I<A'>, I<c>.
+Signal Detection Theory (SDT) measures of sensitivity and response-bias, e.g., I<d'>, I<A'>, I<c>. For any particular analysis, you go through the stages of (1) creating the SDT object (see L<new|new>), (2) initialising the object with relevant data (see L<init|init>), and then (3) calling the statistic you want, with any statistic-specific arguments.
 
 =head1 KEY NAMED PARAMS
 
-The following named parameters must be given as a hash or hash-reference: either to the L<new|new> constructor method, L<init|init>, or into each measure-function. To calculate the hit-rate, you need to feed the (i) count of hits and signal_trials, or (ii) the counts of hits and misses, or (iii) the count of signal_trials and misses. To calculate the false-alarm-rate, you need to feed (i) the count of false_alarms and noise_trials, or (ii) the count of false_alarms and correct_rejections, or (iii) the count of noise_trials and correct_rejections. Or you supply the hit-rate and false-alarm-rate. Or see L<dc2hr|dc2hr> and L<dc2far|dc2far> if you already have the measures, and want to get back to the rates.
+The following named parameters need to be given as a hash or hash-reference: either to the L<new|new> constructor method, L<init|init>, or into each measure-function. To calculate the hit-rate, you need to feed the (i) count of hits and signal_trials, or (ii) the counts of hits and misses, or (iii) the count of signal_trials and misses. To calculate the false-alarm-rate, you need to feed (i) the count of false_alarms and noise_trials, or (ii) the count of false_alarms and correct_rejections, or (iii) the count of noise_trials and correct_rejections. Or you supply the hit-rate and false-alarm-rate. Or see L<dc2hr|dc2hr> and L<dc2far|dc2far> if you already have the measures, and want to get back to the rates.
 
 =over 4
 
@@ -92,11 +92,11 @@ The number of noise trials. The false-alarm-rate is derived by dividing the numb
 
 =item states
 
-The number of response states, or "alternatives", "options", etc.. Default = 2 (for the classic signal-detection situation of discriminating between signal+noise and noise-only). If the number of alternatives is greater than 2, when calling L<sensitivity|sensitivity>, Smith's (1982) estimation of I<d'> is used (otherwise Alexander's) - see L<forced_choice|forced_choice>.
+The number of response states, or "alternatives", "options", etc.. Default = 2 (for the classic signal-detection situation of discriminating between signal+noise and noise-only). If the number of alternatives is greater than 2, when calling L<sens|sens>, Smith's (1982) estimation of I<d'> is used (otherwise Alexander's) - see L<forced_choice|forced_choice>.
 
 =item correction
 
-Supply a rich-boolean to indicate whether or not to perform a correction on the number of hits and false-alarms when the hit-rate or false-alarm-rate equals 0 or 1 (due, e.g., to strong inducements against false-alarms, or easy discrimination between signals and noise). This is relevant to all functions that make use of the I<inverse phi> function (all except L<aprime|aprime> option with L<sensitivity|sensitivity> and L<griers|griers> option with L<bias|bias>). As C<ndtri> must die with an error if 0 or 1 is given to its evaluation, there is a default correction.
+Supply a rich-boolean to indicate whether or not to perform a correction on the number of hits and false-alarms when the hit-rate or false-alarm-rate equals 0 or 1 (due, e.g., to strong inducements against false-alarms, or easy discrimination between signals and noise). This is relevant to all functions that make use of the I<inverse phi> function (all except L<aprime|aprime> option with L<sens|sens> and L<griers|griers> option with L<bias|bias>). As C<ndtri> must die with an error if 0 or 1 is given to its evaluation, there is a default correction.
 
 If C<correction> is set to zero, no correction is performed to calculation of rates. This should only be used when you are using (1) the parametric measures and are absoultely sure that the rates are not at the extremes of 0 and 1; or (2) you will only use the nonparametric algorithms (L<aprime|aprime> and L<griers|griers>).
 
@@ -130,7 +130,7 @@ This is the false-alarm-rate. Instead of passing the number of false alarms and 
 
 Creates the class object that holds the values of the parameters, as above, and accesses the following methods, without having to resubmit all the values. 
 
-As well as holding the values of the parameters submitted to it, the class-object returned by C<new> will hold two arguments, B<hr>, the hit-rate, and B<far>, the false-alarm-rate. You can supply the hit-rate and false-alarm-rate themselves, but ensure that they do not equal zero or 1 in order to avoid errors thrown by the inverse-phi function. The calculation of the hit-rate and false-alarm-rate by the module corrects for this limitation - see the notes on the C<correction> parameter, above. 
+As well as holding the values of the parameters submitted to it, the class-object returned by C<new> will hold two arguments, B<hr>, the hit-rate, and B<far>, the false-alarm-rate. You can supply the hit-rate and false-alarm-rate themselves, but ensure that they do not equal zero or 1 in order to avoid errors thrown by the inverse-phi function. The calculation of the hit-rate and false-alarm-rate by the module corrects for this limitation; correction can only be done by supplying the relevant counts, not just the rate - see the notes on the C<correction> parameter, above. 
 
 =cut
 
@@ -307,12 +307,12 @@ sub _correct_rejection_rate {
 # Sensitivity measures:
 # --------------------
 
-=head2 sensitivity
+=head2 sens
 
- $s = $sdt->sensitivity('dprime|forcedchoice|area|aprime') # based on values of the measure variables already inited or otherwise set 
- $s = $sdt->sensitivity('dprime' => { signal_trials => integer}) # update any of the measure variables
+ $s = $sdt->sens('dprime|forcedchoice|area|aprime') # based on values of the measure variables already inited or otherwise set 
+ $s = $sdt->sens('dprime' => { signal_trials => integer}) # update any of the measure variables
 
-I<Alias>: C<sens>, C<discriminability>
+I<Alias>: C<sensitivity>, C<discriminability>
 
 Get one of the sensitivity measures, as indicated by the first argument string, optionally updating any of the measure variables and options with a subsequent hashref. The measures are as follows, accessed by giving the name (or at least its first two letters) as the first argument.
 
@@ -395,7 +395,7 @@ If both the hit-rate and false-alarm-rate are either 0 or 1, then C<sensitivity>
 =cut
 
 # --------------------
-sub sensitivity {
+sub sens {
 # --------------------
     my $self = shift;
     local $_ = shift;
@@ -407,8 +407,8 @@ sub sensitivity {
         /^ad/i && do { return $self->_ad_sensitivity(%args); };
     } #end CASE
 }
-*discriminability = \&sensitivity; # Alias
-*sens =\&sensitivity;
+*discriminability = \&sens; # Alias
+*sensitivity =\&sens;
 
 sub _d_sensitivity {
     my $self = shift;
@@ -577,12 +577,12 @@ sub _griers_bias { # B''
     if ($h >= $f) {
         $a = ( $h * (1 - $h) );
         $b = ( $f * (1 - $f) );
-            $c =  ( $a - $b ) /  ( $a + $b );
+        $c =  ( $a - $b ) /  ( $a + $b );
     }
     else {
         $a = ( $f * (1 - $f) );
         $b = ( $h * (1 - $h) );
-            $c = ( $a - $b ) / ( $a + $b );
+        $c = ( $a - $b ) / ( $a + $b );
     }
     return _precisioned($self->{'precision_s'}, $c); 
 }
@@ -675,7 +675,7 @@ sub _init_rate {# Initialise hit and false-alarm rates:
 
     # Need (i) no. of hits and signal trials, or (ii) no. of false alarms and noise trials:
     croak __PACKAGE__, " Number of hits/false-alarms and signal/noise trials needed to calculate rate" if ! defined $count || ! defined $trials;
-    
+
     if ($correction > 1) { # loglinear correction, regardless of values:
          $rate = _loglinear_correct($count, $trials);
     }

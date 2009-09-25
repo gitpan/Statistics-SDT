@@ -1,6 +1,6 @@
 Revision history for Perl extension Statistics::SDT.
 
-0.034 
+0.035 
 	Trying to ensure file modes OK for Darwin, Linux and friends.
 	Couple more aliases.
 
