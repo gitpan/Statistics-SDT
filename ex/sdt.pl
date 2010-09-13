@@ -1,6 +1,6 @@
 # Example comparing results with Stanislav & Todorov (1999).
 
-use Statistics::SDT 0.035;
+use Statistics::SDT 0.04;
 
 my $sdt = Statistics::SDT->new(
   correction => 1,

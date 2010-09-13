@@ -5,7 +5,7 @@ use warnings;
 use Carp qw(croak);
 use Math::Cephes qw(:dists :explog);
 use vars qw($VERSION);
-$VERSION = 0.035;
+$VERSION = 0.04;
 
 my %counts_dep = (
     hits => [qw/signal_trials misses/], 
@@ -30,7 +30,7 @@ Statistics::SDT - Signal detection theory (SDT) measures of sensitivity and resp
 
 The following is based on example data from Stanislav & Todorov (1999), and Alexander (2006), with which the module's results agree.
 
- use Statistics::SDT 0.035;
+ use Statistics::SDT 0.04;
 
  my $sdt = Statistics::SDT->new(
   correction => 1,
@@ -96,9 +96,9 @@ The number of response states, or "alternatives", "options", etc.. Default = 2 (
 
 =item correction
 
-Supply a rich-boolean to indicate whether or not to perform a correction on the number of hits and false-alarms when the hit-rate or false-alarm-rate equals 0 or 1 (due, e.g., to strong inducements against false-alarms, or easy discrimination between signals and noise). This is relevant to all functions that make use of the I<inverse phi> function (all except L<aprime|aprime> option with L<sens|sens> and L<griers|griers> option with L<bias|bias>). As C<ndtri> must die with an error if 0 or 1 is given to its evaluation, there is a default correction.
+Supply a rich-boolean to indicate whether or not to perform a correction on the number of hits and false-alarms when the hit-rate or false-alarm-rate equals 0 or 1 (due, e.g., to strong inducements against false-alarms, or easy discrimination between signals and noise). This is relevant to all functions that make use of the I<inverse phi> function (all except I<aprime> option with L<sens|sens>, and the I<griers> option with L<bias|bias>). As C<ndtri> must die with an error if 0 or 1 is given to its evaluation, there is a default correction.
 
-If C<correction> is set to zero, no correction is performed to calculation of rates. This should only be used when you are using (1) the parametric measures and are absoultely sure that the rates are not at the extremes of 0 and 1; or (2) you will only use the nonparametric algorithms (L<aprime|aprime> and L<griers|griers>).
+If C<correction> is set to zero, no correction is performed to calculation of rates. This should only be used when you are using (1) the parametric measures and are absoultely sure that the rates are not at the extremes of 0 and 1; or (2) you will only use the nonparametric algorithms (I<aprime> and I<griers>).
 
 If C<correction> is set to 1, extreme rates (of 0 and 1) are replaced with the number of signal/noise trials, moderated by a value of 0.5 (specifically, where I<n> = number of signal or noise trials: 0 is replaced with 0.5 / I<n>; 1 is replaced with (I<n> - 0.5) / I<n>). This is the most common method of handling extreme rates (Stanislav and Todorov, 1999) but it might bias sensitivity measures and not be as satisfactory as the loglinear transformation applied to all hits and false-alarms, as follows.
 
@@ -326,15 +326,15 @@ Returns the index of sensitivity, or discrimination, I<d'> (d prime), found by s
 
 =item
 
-In this way, sensitivity is measured in standard deviation units, larger positive values indicating greater sensitivity. If both the hit-rate and false-alarm-rate are either 0 or 1, then L<sensitivity|sensitivity> returns 0. A value of 0 indicates no sensitivity to the presence of the signal, i.e., it cannot be discriminated from noise. Values less than 0 indicate a lack of sensitivity that might result from a consistent, state-specific "mix-up" or inhibition of responses.
+In this way, sensitivity is measured in standard deviation units, larger positive values indicating greater sensitivity. If both the hit-rate and false-alarm-rate are either 0 or 1, then L<sens>itivity returns 0. A value of 0 indicates no sensitivity to the presence of the signal, i.e., it cannot be discriminated from noise. Values less than 0 indicate a lack of sensitivity that might result from a consistent, state-specific "mix-up" or inhibition of responses.
 
 If there are more than two states (not only signal and noise-plus-signal), then I<d'> will be estimated by the following.
 
 =item forced_choice
 
-An estimate of I<d'> based on the percent correct in a forced-choice task with any number of alternatives. This method is automatically called via L<sensitivity|sensitivity> if the value of C<states> is greater than 2. Only for this condition is it not necessary to calculate the false-alarm rate; the hit-rate is formed, as usual, as the count of hits divided by signal_trials.
+An estimate of I<d'> based on the percent correct in a forced-choice task with any number of alternatives. This method is automatically called via L<sens>itivity if the value of C<states> is greater than 2. Only for this condition is it not necessary to calculate the false-alarm rate; the hit-rate is formed, as usual, as the count of hits divided by signal_trials.
 
-At least a couple methods are available to estimate I<d'> when states > 2; accordingly, there is the option - set either in L<init|init> or L<sensitivity|sensitivity> or otherwise - for C<method>: its default value is I<smith> (this is the method cited by Stanislav & Todorov (1999)); otherwise, you can use the more generally applicable I<alexander> method:
+At least a couple methods are available to estimate I<d'> when states > 2; accordingly, there is the option - set either in L<init|init> or L<sens>itivity or otherwise - for C<method>: its default value is I<smith> (this is the method cited by Stanislav & Todorov (1999)); otherwise, you can use the more generally applicable I<alexander> method:
 
 B<I<Smith (1982) method>>: satisfies "the 2% bound for all I<M> [states] and all percentiles and, except for I<M> = 3 or 4, satisfies a 1% error bound". Unlike the C<alexander> method, the specific algorithm is dependent on the size of states. 
 
@@ -750,7 +750,7 @@ See Changes file in installation dist.
 
 =over 4
 
-=item Copyright (c) 2006-2009 Roderick Garton
+=item Copyright (c) 2006-2010 Roderick Garton
 
 rgarton AT cpan DOT org
 
@@ -761,5 +761,9 @@ This program is free software. It may be used, redistributed and/or modified und
 To the maximum extent permitted by applicable law, the author of this module disclaims all warranties, either express or implied, including but not limited to implied warranties of merchantability and fitness for a particular purpose, with regard to the software and the accompanying documentation.
 
 =back
+
+=head1 END
+
+This ends documentation for a Perl implementation of signal detection theory measures of sensitivity and bias.
 
 =cut
