@@ -5,7 +5,7 @@ use warnings;
 use Carp qw(croak);
 use Math::Cephes qw(:dists :explog);
 use vars qw($VERSION);
-$VERSION = 0.04;
+$VERSION = 0.05;
 
 my %counts_dep = (
     hits => [qw/signal_trials misses/], 
@@ -30,7 +30,7 @@ Statistics::SDT - Signal detection theory (SDT) measures of sensitivity and resp
 
 The following is based on example data from Stanislav & Todorov (1999), and Alexander (2006), with which the module's results agree.
 
- use Statistics::SDT 0.04;
+ use Statistics::SDT 0.05;
 
  my $sdt = Statistics::SDT->new(
   correction => 1,
@@ -96,15 +96,15 @@ The number of response states, or "alternatives", "options", etc.. Default = 2 (
 
 =item correction
 
-Supply a rich-boolean to indicate whether or not to perform a correction on the number of hits and false-alarms when the hit-rate or false-alarm-rate equals 0 or 1 (due, e.g., to strong inducements against false-alarms, or easy discrimination between signals and noise). This is relevant to all functions that make use of the I<inverse phi> function (all except I<aprime> option with L<sens|sens>, and the I<griers> option with L<bias|bias>). As C<ndtri> must die with an error if 0 or 1 is given to its evaluation, there is a default correction.
+Indicate whether or not to perform a correction on the number of hits and false-alarms when the hit-rate or false-alarm-rate equals 0 or 1 (due, e.g., to strong inducements against false-alarms, or easy discrimination between signals and noise). This is relevant to all functions that make use of the I<inverse phi> function (all except I<aprime> option with L<sens|sens>, and the I<griers> option with L<bias|bias>). As C<ndtri> must die with an error if given 0 or 1, there is a default correction.
 
-If C<correction> is set to zero, no correction is performed to calculation of rates. This should only be used when you are using (1) the parametric measures and are absoultely sure that the rates are not at the extremes of 0 and 1; or (2) you will only use the nonparametric algorithms (I<aprime> and I<griers>).
+If C<correction> = 0, no correction is performed to calculation of rates. This should only be used when (1) using the parametric measures and the rates will never be at the extremes of 0 and 1; or (2) using only the nonparametric measures (I<aprime> and I<griers>).
 
-If C<correction> is set to 1, extreme rates (of 0 and 1) are replaced with the number of signal/noise trials, moderated by a value of 0.5 (specifically, where I<n> = number of signal or noise trials: 0 is replaced with 0.5 / I<n>; 1 is replaced with (I<n> - 0.5) / I<n>). This is the most common method of handling extreme rates (Stanislav and Todorov, 1999) but it might bias sensitivity measures and not be as satisfactory as the loglinear transformation applied to all hits and false-alarms, as follows.
+If C<correction> = 1 (default), extreme rates (of 0 and 1) are corrected: 0 is replaced with 0.5 / I<n>; 1 is replaced with (I<n> - 0.5) / I<n>, where I<n> = number of signal or noise trials. This is the most common method of handling extreme rates (Stanislav and Todorov, 1999) but it might bias sensitivity measures and not be as satisfactory as the loglinear transformation applied to all hits and false-alarms, as follows.
 
-If C<correction> is set to greater than 1, the loglinear transformation is applied, i.e., 0.5 is added to both the number of hits and false-alarms, and 1 is added to the number of signal and noise trials. This adjustment is made irrespective of the extremity of the rates themselves.
+If C<correction> > 1, the loglinear transformation is appliedt to I<all> values: 0.5 is added to both the number of hits and false-alarms, and 1 is added to the number of signal and noise trials.
 
-To avoid errors thrown by the C<ndtri> function, any values that equal 1 or 0 will be corrected by method (1), if nothing is defined as the value of C<correction>.
+If C<correction> is undefined: To avoid errors thrown by the C<ndtri> function, any values that equal 1 or 0 will be corrected as if it equals 1.
 
 =item precision_s
 
@@ -324,59 +324,45 @@ Returns the index of sensitivity, or discrimination, I<d'> (d prime), found by s
 
 =for html <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>d'</i> = phi<sup>&ndash;1</sup>(hr)&nbsp;&ndash;&nbsp;phi<sup>&ndash;1</sup>(far)</p>
 
-=item
-
-In this way, sensitivity is measured in standard deviation units, larger positive values indicating greater sensitivity. If both the hit-rate and false-alarm-rate are either 0 or 1, then L<sens>itivity returns 0. A value of 0 indicates no sensitivity to the presence of the signal, i.e., it cannot be discriminated from noise. Values less than 0 indicate a lack of sensitivity that might result from a consistent, state-specific "mix-up" or inhibition of responses.
+In this way, sensitivity is measured in standard deviation units, larger positive values indicating greater sensitivity. If both the hit-rate and false-alarm-rate are either 0 or 1, then L<sens|sens>itivity returns 0. A value of 0 indicates no sensitivity to the presence of the signal, i.e., it cannot be discriminated from noise. Values less than 0 indicate a lack of sensitivity that might result from a consistent, state-specific "mix-up" or inhibition of responses.
 
 If there are more than two states (not only signal and noise-plus-signal), then I<d'> will be estimated by the following.
 
 =item forced_choice
 
-An estimate of I<d'> based on the percent correct in a forced-choice task with any number of alternatives. This method is automatically called via L<sens>itivity if the value of C<states> is greater than 2. Only for this condition is it not necessary to calculate the false-alarm rate; the hit-rate is formed, as usual, as the count of hits divided by signal_trials.
+An estimate of I<d'> based on the percent correct in a forced-choice task with any number of alternatives. This method is automatically called via L<sens|sens>itivity if the value of C<states> is greater than 2. Only for this condition is it not necessary to calculate the false-alarm rate; the hit-rate is formed, as usual, as the count of hits divided by signal_trials.
 
-At least a couple methods are available to estimate I<d'> when states > 2; accordingly, there is the option - set either in L<init|init> or L<sens>itivity or otherwise - for C<method>: its default value is I<smith> (this is the method cited by Stanislav & Todorov (1999)); otherwise, you can use the more generally applicable I<alexander> method:
+At least a couple methods are available to estimate I<d'> when states > 2; accordingly, there is the option - set either in L<init|init> or L<sens|sens>itivity or otherwise - for C<method>: its default value is I<smith> (this is the method cited by Stanislav & Todorov (1999)); otherwise, you can use the more generally applicable I<alexander> method:
 
-B<I<Smith (1982) method>>: satisfies "the 2% bound for all I<M> [states] and all percentiles and, except for I<M> = 3 or 4, satisfies a 1% error bound". Unlike the C<alexander> method, the specific algorithm is dependent on the size of states. 
+B<I<Smith (1982) method>>: satisfies "the 2% bound for all I<M> [states] and all percentiles and, except for I<M> = 3 or 4, satisfies a 1% error bound". The specific algorithm used depends on number of states: 
 
 For I<n> states E<lt> 12:
 
 =for html <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>d'</i> = K<sub>M</sub>.log(  ( (<i>n</i>&ndash;&nbsp;1).<i>hr</i> ) / ( 1 &ndash; <i>hr</i> ) )</p>
 
-=item
-
 where
 
 =for html <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;K<sub>M</sub> = .86 &ndash; .085 . log(<i>n</i>&nbsp;&ndash;&nbsp;1).</p>
-
-=item
 
 If I<n> >= 12,
 
 =for html <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>d'</i> = A + B . phi<sup>&ndash;1</sup>(hr)</p>
 
-=item
-
 where
 
 =for html <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>A</i> = (&ndash;4 + sqrt(16 + 25 . log(<i>n</i> &ndash; 1))) / 3</p>
-
-=item
 
 and
 
 =for html <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>B</i> = sqrt( (log(<i>n</i> &ndash; 1) + 2) / (log(<i>n</i> &ndash; 1) + 1) )</p>
 
-=item
-
 B<I<Alexander (2006/1990) method>>: "gives values of I<d'> with an error of less than 2% (mostly less than 1%) from those obtained by integration for the range I<d'> = 0 (or 1% correct for I<n> [states] > 1000) to 75% correct and an error of less than 4% up to 95% correct for I<n> up to at least 10000, and slightly greater maximum errors for I<n> = 100000. This approximation is comparable to the accuracy of Elliott's table (0.02 in proportion correct) but can be used for any I<n>." (Elliott's table being that in Swets, 1964, pp. 682-683). The estimation is offered by:
 
 =for html <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>d'</i> = ( phi<sup>&ndash;1</sup>(hr) &ndash;&nbsp;phi<sup>&ndash;1</sup>(1/<i>n</i>) ) / <i>An</i></p>
 
-=item
+where I<n> is the number of L<states|states> (or alternatives, alphabet-size, etc.), and I<An> is estimated by:
 
-where I<n> is the number of L<states|states> (or "alternatives", size of the "alphabet", etc.), and I<An> is estimated by:
-
-=for html <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>An</i> = 1 / (1.93 + 4.75.log<sub>10</sub>(<i>n</i>) + .63.[log<sub>10</sub>(<i>n</i>)]<sup>2</sup>) </p>
+=for html <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>An</i> = 1 / (1.93 + 4.75.log<sub>10</sub>(<i>n</i>) + .63.[log<sub>10</sub>(<i>n</i>)]<sup>2</sup>)</p>
 
 =item aprime
 
@@ -413,9 +399,10 @@ sub sens {
 sub _d_sensitivity {
     my $self = shift;
     my ($h, $f, $m, $d) = $self->init(@_);
-    
+    $m ||= 2;
     # If there are more than 2 states, use a forced-choice method:
     if ($m > 2) {
+        #croak 'No hit-rate for calculating d-sensitivity' if ! defined $h;
         $self->rate(hr => $h, states => $m);
         $d = $self->_sensitivity_fc();
     }
@@ -436,8 +423,9 @@ sub _d_sensitivity {
 
 sub _d_sensitivity_fc {
     my $self = shift;
-    my ($h, $f, $m, $d) = $self->init(@_);
-   
+    my ($h, $f, $m, $d) = $self->init(@_); # $d is undefined
+    croak "No hit-rate for calculating forced-choice sensitivity" if ! defined $h;
+    croak "No number of alternative choices for calculating forced-choice sensitivity" if ! defined $m;
     if ($self->{'method'} eq 'smith') { # Smith (1982) method:
         if ($m < 12) {
             my $km = .86 - .085 * log($m - 1);
@@ -504,7 +492,7 @@ sub _ad_sensitivity {
 
 Get one of the decision/response-bias measures, as indicated below, by the first argument string, optionally updating any of the measure variables and options with a subsequent hashref (as given by example for C<signal_trials>, above). 
 
-With a I<yes> response indicating that the decision variable exceeds the criterion, and a I<no> response indicating that the decision variable is less than the criterion, the measures indicate if there is a bias toward the I<yes> response, and so a liberal (or low) criterion, or a bias toward the I<no> response, and so a conservative (or high) criterion.  
+With a I<yes> response indicating that the decision variable exceeds the criterion, and a I<no> response indicating that the decision variable is less than the criterion, the measures indicate if there is a bias toward the I<yes> response, and so a liberal/low criterion, or a bias toward the I<no> response, and so a conservative/high criterion.  
 
 The measures are as follows, accessed by giving the name (or at least its first two letters) as the first argument to C<bias>.
 
@@ -513,6 +501,8 @@ The measures are as follows, accessed by giving the name (or at least its first 
 =item beta (or) likelihood_bias
 
 Returns the I<beta> measure of response bias, based on the ratio of the likelihood the decision variable obtains a certain value on signal trials, to the likelihood that it obtains the value on noise trials.
+
+=for html <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>beta</i> = exp( ( (phi<sup>&ndash;1</sup>(<i>far</i>)<sup>2</sup>&nbsp;&ndash;&nbsp;phi<sup>&ndash;1</sup>(<i>hr</i>)<sup>2</sup>) ) / 2 )</p>
 
 Values less than 1 indicate a bias toward the I<yes> response, values greater than 1 indicate a bias toward the I<no> response, and the value of 1 indicates no bias toward I<yes> or I<no>.
 
@@ -524,7 +514,7 @@ Ranges from -1 to +1, with values less than 0 indicating a bias toward the I<yes
 
 =item c (or) decision_bias
 
-Implements the I<c> parametric measure of response bias. Ranges from -1 to +1, with deviations from zero, measured in standard deviation units, indicating the position of the decision criterion with respect to the neutral point where the signal and noise distributions cross over, there is no response bias, and I<c> = 0. 
+Implements the I<c> parametric measure of response bias. Ranges from -1 to +1, with deviations from zero, measured in standard deviation units, indicating the position of the decision criterion with respect to the neutral point where the signal and noise distributions cross over, there is no response bias, and I<c> = 0.
 
 Values less than 0 indicate a bias toward the I<yes> response; values greater than 0 indicate a bias toward the I<no> response; and a value of 0 indicates no response bias.
 
@@ -553,8 +543,8 @@ sub bias {
 }
 
 sub _likelihood_bias { # beta
-    my $self = shift;
-    my ($h, $f) = $self->init(@_);
+    my $self = shift;print "args = ", join(', ', @_), "\n";
+    my ($h, $f) = $self->init(@_);#print "init: hr = $h far = $f\n";
     return _precisioned($self->{'precision_s'}, exp( ( ( (ndtri($f)**2) - (ndtri($h)**2) ) / 2 ) ) );
 }
 
@@ -694,15 +684,17 @@ sub _loglinear_correct {
 
 sub _n_correct {
     my ($rate, $trials) = @_;
+    my $retval;
     if (! $rate) {
-        return .5 / $trials;
+        $retval = .5 / $trials;
     }
     elsif ($rate == 1) {
-        return ($trials - .5) / $trials;
+        $retval = ($trials - .5) / $trials;
     }
     else {
-        return $rate;
+        $retval = $rate;
     }
+    return $retval;
 }
 
 sub _precisioned {
@@ -750,7 +742,7 @@ See Changes file in installation dist.
 
 =over 4
 
-=item Copyright (c) 2006-2010 Roderick Garton
+=item Copyright (c) 2006-2013 Roderick Garton
 
 rgarton AT cpan DOT org
 
